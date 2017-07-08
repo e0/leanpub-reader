@@ -1,15 +1,15 @@
 <template>
-  <div>
+  <div class="wrapper">
     <div class="toc">
       <div v-for="chapter in chapters">
-        <h2>
+        <h1 class="title is-5">
           <a
             :href="chapter.id"
             @click="goToChapter(chapter.id)"
           >{{ chapter.name }}</a>
-        </h2>
+        </h1>
         <ul
-          <li v-for="section in chapter.sections">
+          <li class="title is-6" v-for="section in chapter.sections">
             <a
               :href="section.id"
               @click="goToSection(section.id)"
@@ -112,3 +112,25 @@ export default {
 }
 
 </script>
+
+<style lang='sass' scope>
+
+.wrapper
+  display: flex
+
+  .toc
+    width: 300px
+    min-width: 300px
+    padding: 20px
+
+    div:not(:first-child)
+      margin-top: 1.5rem
+
+    h1
+      margin-bottom: .5rem
+
+    li
+      list-style: none
+      margin-bottom: .5rem
+
+</style>
