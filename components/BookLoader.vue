@@ -1,14 +1,24 @@
 <template>
-  <div>
-    <div v-for="chapter in chapters">
-      <h2>
-        <a :href="chapter.id">{{ chapter.name }}</a>
-      </h2>
-      <ul
-        <li v-for="section in chapter.sections">
-          <a :href="section.id">{{ section.name }}</a>
-        </li>
-      </ul>
+  <div class="container">
+    <div class="toc">
+      <div v-for="chapter in chapters">
+        <h2>
+          <a
+            :href="chapter.id"
+            @click="goToChapter(chapter.id)"
+          >{{ chapter.name }}</a>
+        </h2>
+        <ul
+          <li v-for="section in chapter.sections">
+            <a
+              :href="section.id"
+              @click="goToSection(section.id)"
+            >{{ section.name }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div v-html="currentSectionContent" class="current-section">
     </div>
   </div>
 </template>
@@ -22,11 +32,11 @@ import sampleBook from '~static/sample-book.txt'
 export default {
   data () {
     return {
-      chapters: []
+      chapters: [],
+      currentSectionContent: ''
     }
   },
   created () {
-    console.log(this)
     this.findBookNode()
 
     // const bookUrl = 'https://leanpub.com/haskell-cookbook/read'
@@ -66,10 +76,32 @@ export default {
 
           this.chapters.push(chapter)
         })
-        console.log(this.chapters)
       }
+    },
+    goToChapter: function (chapterId) {
+      const $ = cheerio.load(sampleBook)
+      const chapterHeading = $(chapterId).nextUntil('h2')
+      this.currentSectionContent = ''
+      chapterHeading.each((i, nextPart) => {
+        this.currentSectionContent += $(nextPart).html()
+      })
+    },
+    goToSection: function (sectionId) {
+      const $ = cheerio.load(sampleBook)
+      const sectionHeading = $(sectionId).nextUntil('h3')
+      this.currentSectionContent = ''
+      sectionHeading.each((i, nextPart) => {
+        this.currentSectionContent += $(nextPart).html()
+      })
     }
   }
 }
 
 </script>
+
+<style>
+.container {
+  display: flex;
+}
+
+</style>
