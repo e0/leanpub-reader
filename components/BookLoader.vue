@@ -79,20 +79,34 @@ export default {
       }
     },
     goToChapter: function (chapterId) {
-      const $ = cheerio.load(sampleBook)
-      const chapterHeading = $(chapterId).nextUntil('h2')
       this.currentSectionContent = ''
-      chapterHeading.each((i, nextPart) => {
-        this.currentSectionContent += $(nextPart).html()
+
+      const $ = cheerio.load(sampleBook)
+      this.currentSectionContent += $(chapterId)
+
+      let chapter = $(chapterId).nextUntil('h2')
+      if (this.outerEl(chapter).find('h3').length > 0) {
+        chapter = $(chapterId).nextUntil('h3')
+      }
+      chapter.each((i, nextPart) => {
+        const outerHtml = this.outerEl($(nextPart)).html()
+        this.currentSectionContent += outerHtml
       })
     },
     goToSection: function (sectionId) {
-      const $ = cheerio.load(sampleBook)
-      const sectionHeading = $(sectionId).nextUntil('h3')
       this.currentSectionContent = ''
-      sectionHeading.each((i, nextPart) => {
-        this.currentSectionContent += $(nextPart).html()
+
+      const $ = cheerio.load(sampleBook)
+      this.currentSectionContent += $(sectionId)
+
+      const section = $(sectionId).nextUntil('h3')
+      section.each((i, nextPart) => {
+        const outerHtml = this.outerEl($(nextPart)).html()
+        this.currentSectionContent += outerHtml
       })
+    },
+    outerEl: (el) => {
+      return el.clone().wrap('<container />').parent()
     }
   }
 }
@@ -103,5 +117,10 @@ export default {
 .container {
   display: flex;
 }
-
+.toc {
+  width: 30%;
+}
+.current-section {
+  width: 70%;
+}
 </style>
