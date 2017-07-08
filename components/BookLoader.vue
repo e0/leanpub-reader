@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div>
     <div class="toc">
       <div v-for="chapter in chapters">
         <h2>
@@ -112,15 +112,3 @@ export default {
 }
 
 </script>
-
-<style>
-.container {
-  display: flex;
-}
-.toc {
-  width: 30%;
-}
-.current-section {
-  width: 70%;
-}
-</style>

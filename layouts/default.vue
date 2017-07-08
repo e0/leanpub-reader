@@ -4,5 +4,8 @@
   </div>
 </template>
 
-<style>
+<style lang='sass'>
+
+@import '~bulma'
+
 </style>
