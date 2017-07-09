@@ -1,23 +1,49 @@
 <template>
   <div class="wrapper">
-    <div class="toc">
-      <div v-for="chapter in chapters">
-        <h1 class="title is-5">
-          <a
-            @click="goToChapter(chapter.id)"
-          >{{ chapter.name }}</a>
-        </h1>
-        <ul
-          <li class="title is-6" v-for="section in chapter.sections">
-            <a
-              :href="section.id"
+    <div class="toc-wrapper">
+      <div class="navbar">
+        <a
+          :disabled="isFirstSection"
+          @click="goToPrevSection"
+          class="button is-primary is-outlined"
+        >
+          <span class="icon is-small">
+            <i class="fa fa-angle-left"></i>
+          </span>
+          <span>Prev</span>
+        </a>
+        <a
+          :disabled="isLastSection"
+          @click="goToNextSection"
+          class="button is-primary is-outlined"
+        >
+          <span>Next</span>
+          <span class="icon is-small">
+            <i class="fa fa-angle-right"></i>
+          </span>
+        </a>
+      </div>
+      <div class="toc">
+        <div v-for="chapter in chapters">
+          <h1
+            :class="{ current: chapter.id === currentSectionId }"
+            class="title is-5"
+            @click="goToSection(chapter.id)"
+          >{{ chapter.name }}</h1>
+          <ul
+            <li
+              v-for="section in chapter.sections"
               @click="goToSection(section.id)"
-            >{{ section.name }}</a>
-          </li>
-        </ul>
+              :class="{ current: section.id === currentSectionId }"
+              class="title is-6"
+            >{{ section.name }}</li>
+          </ul>
+        </div>
       </div>
     </div>
-    <div v-html="currentSectionContent" class="content">
+    <div class="content-wrapper">
+      <div v-html="currentSectionContent" class="content">
+      </div>
     </div>
   </div>
 </template>
@@ -32,6 +58,7 @@ export default {
   data () {
     return {
       chapters: [],
+      currentSectionId: '',
       currentSectionContent: ''
     }
   },
@@ -46,6 +73,19 @@ export default {
     //   .catch((error) => {
     //     console.log(error)
     //   })
+  },
+  computed: {
+    isFirstSection () {
+      return this.currentSectionId === this.chapters[0].id
+    },
+    isLastSection () {
+      const lastChapter = this.chapters[this.chapters.length - 1]
+      let lastSectionId = lastChapter.id
+      if (lastChapter.sections.length > 0) {
+        lastSectionId = lastChapter.sections[lastChapter.sections.length - 1].id
+      }
+      return this.currentSectionId === lastSectionId
+    }
   },
   methods: {
     findBookNode: function () {
@@ -75,34 +115,84 @@ export default {
 
           this.chapters.push(chapter)
         })
-      }
-    },
-    goToChapter: function (chapterId) {
-      this.currentSectionContent = ''
 
-      const $ = cheerio.load(sampleBook)
-      this.currentSectionContent += $(chapterId)
-
-      let chapter = $(chapterId).nextUntil('h2')
-      if (this.outerEl(chapter).find('h3').length > 0) {
-        chapter = $(chapterId).nextUntil('h3')
+        this.goToSection(this.chapters[0].id)
       }
-      chapter.each((i, nextPart) => {
-        const outerHtml = this.outerEl($(nextPart)).html()
-        this.currentSectionContent += outerHtml
-      })
     },
     goToSection: function (sectionId) {
       this.currentSectionContent = ''
+      this.currentSectionId = sectionId
 
       const $ = cheerio.load(sampleBook)
       this.currentSectionContent += $(sectionId)
 
-      const section = $(sectionId).nextUntil('h3')
+      let section = $(sectionId).nextUntil('h2')
+      if (this.outerEl(section).find('h3').length > 0) {
+        section = $(sectionId).nextUntil('h3')
+      }
       section.each((i, nextPart) => {
         const outerHtml = this.outerEl($(nextPart)).html()
         this.currentSectionContent += outerHtml
       })
+    },
+    goToNextSection: function () {
+      /* eslint no-labels: ["error", { "allowLoop": true }] */
+      outer:
+      for (let i = 0; i < this.chapters.length; i += 1) {
+        const chapter = this.chapters[i]
+        if (chapter.id === this.currentSectionId) { // is a chapter
+          if (chapter.sections.length > 0) { // first section of chapter
+            this.goToSection(chapter.sections[0].id)
+            break
+          }
+          // next chapter
+          this.goToSection(this.chapters[i + 1].id)
+          break
+        }
+
+        // is a section
+        for (let j = 0; j < chapter.sections.length; j += 1) {
+          const section = chapter.sections[j]
+          if (section.id === this.currentSectionId) {
+            if (j !== chapter.sections.length - 1) {
+              this.goToSection(chapter.sections[j + 1].id)
+              break outer
+            }
+            this.goToSection(this.chapters[i + 1].id)
+            break outer
+          }
+        }
+      }
+    },
+    goToPrevSection: function () {
+      /* eslint no-labels: ["error", { "allowLoop": true }] */
+      outer:
+      for (let i = 0; i < this.chapters.length; i += 1) {
+        const chapter = this.chapters[i]
+        if (chapter.id === this.currentSectionId) { // is a chapter
+          const prevChapter = this.chapters[i - 1]
+          if (prevChapter.sections.length > 0) { // last section of prev chapter
+            this.goToSection(prevChapter.sections[prevChapter.sections.length - 1].id)
+            break
+          }
+          // last chapter
+          this.goToSection(prevChapter.id)
+          break
+        }
+
+        // is a section
+        for (let j = 0; j < chapter.sections.length; j += 1) {
+          const section = chapter.sections[j]
+          if (section.id === this.currentSectionId) {
+            if (j !== 0) { // not first section
+              this.goToSection(chapter.sections[j - 1].id)
+              break outer
+            }
+            this.goToSection(chapter.id)
+            break outer
+          }
+        }
+      }
     },
     outerEl: (el) => {
       return el.clone().wrap('<container />').parent()
@@ -115,44 +205,76 @@ export default {
 <style lang='sass'>
 
 .wrapper
-  .toc
-    position: fixed;
-    height: 100vh;
+  background-color: #FFFEF9
+
+  .toc-wrapper
+    position: fixed
+    height: 100vh
     overflow-y: scroll
     width: 350px
-    padding: 30px 20px
-    background-color: #F9FAFA
+    padding: 0 25px 70px
+    background-color: #FFF
     border-right: 1px solid #F4F5F5
 
-    div:not(:first-child)
-      margin-top: 1.5rem
+    .navbar
+      position: fixed
+      width: 350px
+      margin-left: -25px
+      padding: 20px 25px
+      height: 75px
+      background: #F9FAFA
+      display: flex
+      justify-content: space-between
+      border-bottom: 1px solid #F4F5F5
 
-    h1
-      margin-bottom: .7rem
+    .toc
+      padding-top: 70px
 
-    li
-      list-style: none
-      margin-bottom: .7rem
+      div
+        margin-top: 1.8rem
 
-  .content
-    margin: 0 70px 20px 420px
-    padding-top: 25px
+      li
+        list-style: none
+
+      h1, li
+        padding: 5px 10px
+        margin: -5px -10px
+        cursor: pointer
+        margin-bottom: 5px
+
+        &.current
+          background: #E4E6E9
+          border-radius: 3px
+
+  .content-wrapper
+    margin: 0 70px 0 420px
+    padding-top: 42px
+    padding-bottom: 65px
+    height: 100vh
 
     h2, h3
       font-size: 35px
       font-weight: 600
 
+    h4
+      font-size: 25px
+      font-weight: 600
+      margin-top: 25px
+
     p
       font-size: 18px
 
+    figure.code
+      margin-bottom: 18px
+
     pre
-      background-color: #F9FAFA
+      background-color: #F4F5F5
       text-align: left
 
       code
         padding: 0
         display: inline
-        font-family: 'Courier New';
-        font-size: 13px;
+        font-family: 'Courier New'
+        font-size: 16px
 
 </style>
