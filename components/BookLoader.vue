@@ -1,28 +1,6 @@
 <template>
   <div class="wrapper">
     <div class="toc-wrapper">
-      <div class="navbar">
-        <a
-          :disabled="isFirstSection"
-          @click="goToPrevSection"
-          class="button is-primary is-outlined"
-        >
-          <span class="icon is-small">
-            <i class="fa fa-angle-left"></i>
-          </span>
-          <span>Prev</span>
-        </a>
-        <a
-          :disabled="isLastSection"
-          @click="goToNextSection"
-          class="button is-primary is-outlined"
-        >
-          <span>Next</span>
-          <span class="icon is-small">
-            <i class="fa fa-angle-right"></i>
-          </span>
-        </a>
-      </div>
       <div class="toc">
         <div v-for="chapter in chapters">
           <h1
@@ -42,7 +20,21 @@
       </div>
     </div>
     <div class="content-wrapper">
+      <div
+        :disabled="isFirstSection"
+        @click="goToPrevSection"
+        class="icon page-turner"
+      >
+        <i class="fa fa-angle-left"></i>
+      </div>
       <div v-html="currentSectionContent" class="content">
+      </div>
+      <div
+        :disabled="isLastSection"
+        @click="goToNextSection"
+        class="icon page-turner"
+      >
+        <i class="fa fa-angle-right"></i>
       </div>
     </div>
   </div>
@@ -64,7 +56,6 @@ export default {
   },
   created () {
     this.findBookNode()
-
     // const bookUrl = 'https://leanpub.com/haskell-cookbook/read'
     // axios.get(bookUrl)
     //   .then((response) => {
@@ -73,6 +64,18 @@ export default {
     //   .catch((error) => {
     //     console.log(error)
     //   })
+  },
+  mounted () {
+    window.addEventListener('keyup', (e) => {
+      switch (e.keyCode) {
+        case 37:
+          this.goToPrevSection()
+          break
+        case 39:
+          this.goToNextSection()
+          break
+      }
+    })
   },
   computed: {
     isFirstSection () {
@@ -136,18 +139,19 @@ export default {
       })
     },
     goToNextSection: function () {
-      /* eslint no-labels: ["error", { "allowLoop": true }] */
-      outer:
       for (let i = 0; i < this.chapters.length; i += 1) {
         const chapter = this.chapters[i]
         if (chapter.id === this.currentSectionId) { // is a chapter
           if (chapter.sections.length > 0) { // first section of chapter
             this.goToSection(chapter.sections[0].id)
-            break
+            return
           }
           // next chapter
+          if (i === this.chapters.length - 1) {
+            return
+          }
           this.goToSection(this.chapters[i + 1].id)
-          break
+          return
         }
 
         // is a section
@@ -156,28 +160,33 @@ export default {
           if (section.id === this.currentSectionId) {
             if (j !== chapter.sections.length - 1) {
               this.goToSection(chapter.sections[j + 1].id)
-              break outer
+              return
+            }
+            // next chapter
+            if (i === this.chapters.length - 1) {
+              return
             }
             this.goToSection(this.chapters[i + 1].id)
-            break outer
+            return
           }
         }
       }
     },
     goToPrevSection: function () {
-      /* eslint no-labels: ["error", { "allowLoop": true }] */
-      outer:
       for (let i = 0; i < this.chapters.length; i += 1) {
         const chapter = this.chapters[i]
         if (chapter.id === this.currentSectionId) { // is a chapter
+          if (i === 0) {
+            return
+          }
           const prevChapter = this.chapters[i - 1]
           if (prevChapter.sections.length > 0) { // last section of prev chapter
             this.goToSection(prevChapter.sections[prevChapter.sections.length - 1].id)
-            break
+            return
           }
           // last chapter
           this.goToSection(prevChapter.id)
-          break
+          return
         }
 
         // is a section
@@ -186,10 +195,10 @@ export default {
           if (section.id === this.currentSectionId) {
             if (j !== 0) { // not first section
               this.goToSection(chapter.sections[j - 1].id)
-              break outer
+              return
             }
             this.goToSection(chapter.id)
-            break outer
+            return
           }
         }
       }
@@ -216,19 +225,8 @@ export default {
     background-color: #FFF
     border-right: 1px solid #F4F5F5
 
-    .navbar
-      position: fixed
-      width: 350px
-      margin-left: -25px
-      padding: 20px 25px
-      height: 75px
-      background: #F9FAFA
-      display: flex
-      justify-content: space-between
-      border-bottom: 1px solid #F4F5F5
-
     .toc
-      padding-top: 70px
+      padding-top: 25px
 
       div
         margin-top: 1.8rem
@@ -242,39 +240,56 @@ export default {
         cursor: pointer
         margin-bottom: 5px
 
-        &.current
-          background: #E4E6E9
+        &.current, &:hover
+          background: rgba(214, 212, 200, 0.42)
           border-radius: 3px
 
   .content-wrapper
-    margin: 0 70px 0 420px
-    padding-top: 42px
-    padding-bottom: 65px
+    display: flex
+    margin-left: 350px
     height: 100vh
 
-    h2, h3
-      font-size: 35px
-      font-weight: 600
+    .page-turner
+      position: fixed
+      display: flex
+      flex-direction: column
+      justify-content: center
+      height: 100%
+      width: 100px
+      cursor: pointer
+      &:hover
+        background: rgba(214, 212, 200, 0.2)
+      &[disabled]
+        opacity: 0.3
 
-    h4
-      font-size: 25px
-      font-weight: 600
-      margin-top: 25px
+    .content
+      margin-left: 100px
+      padding: 42px 10px 65px 10px
+      width: calc(100% - 200px)
 
-    p
-      font-size: 18px
+      h2, h3
+        font-size: 35px
+        font-weight: 600
 
-    figure.code
-      margin-bottom: 18px
+      h4
+        font-size: 25px
+        font-weight: 600
+        margin-top: 25px
 
-    pre
-      background-color: #F4F5F5
-      text-align: left
+      p
+        font-size: 18px
 
-      code
-        padding: 0
-        display: inline
-        font-family: 'Courier New'
-        font-size: 16px
+      figure.code
+        margin-bottom: 18px
+
+      pre
+        background-color: #F4F5F5
+        text-align: left
+
+        code
+          padding: 0
+          display: inline
+          font-family: 'Courier New'
+          font-size: 16px
 
 </style>
