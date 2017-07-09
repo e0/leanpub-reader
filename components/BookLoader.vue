@@ -261,11 +261,15 @@ export default {
         background: rgba(214, 212, 200, 0.2)
       &[disabled]
         opacity: 0.3
+      &:last-child
+        right: 0
 
     .content
       margin-left: 100px
       padding: 42px 10px 65px 10px
+      height: 100%
       width: calc(100% - 200px)
+      overflow-y: auto
 
       h2, h3
         font-size: 35px
