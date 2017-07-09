@@ -17,7 +17,7 @@
         </ul>
       </div>
     </div>
-    <div v-html="currentSectionContent" class="current-section">
+    <div v-html="currentSectionContent" class="content">
     </div>
   </div>
 </template>
@@ -112,15 +112,15 @@ export default {
 
 </script>
 
-<style lang='sass' scope>
+<style lang='sass'>
 
 .wrapper
-  display: flex
-
   .toc
-    width: 300px
-    min-width: 300px
-    padding: 20px
+    position: fixed;
+    height: 100vh;
+    overflow-y: scroll
+    width: 350px
+    padding: 30px 20px
     background-color: #F9FAFA
     border-right: 1px solid #F4F5F5
 
@@ -133,5 +133,26 @@ export default {
     li
       list-style: none
       margin-bottom: .7rem
+
+  .content
+    margin: 0 70px 20px 420px
+    padding-top: 25px
+
+    h2, h3
+      font-size: 35px
+      font-weight: 600
+
+    p
+      font-size: 18px
+
+    pre
+      background-color: #F9FAFA
+      text-align: left
+
+      code
+        padding: 0
+        display: inline
+        font-family: 'Courier New';
+        font-size: 13px;
 
 </style>

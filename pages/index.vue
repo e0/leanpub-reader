@@ -1,5 +1,5 @@
 <template>
-  <section class="container">
+  <section>
     <book-loader />
   </section>
 </template>

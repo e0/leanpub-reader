@@ -13,11 +13,7 @@ $primary: #141517
 html body
   color: $primary
   background-color: #FFF
-pre
-  background-color: #F9FAFA
-  code
-    padding: 0
-    display: inline
+
 .title
   font-weight: 600
   &.is-6
