@@ -6,17 +6,24 @@
 
 <style lang='sass'>
 
-$primary: #859900
+$primary: #141517
 
 @import '~bulma'
 
 html body
-  color: #657b83
-  background-color: #fdf6e3
+  color: $primary
+  background-color: #FFF
 pre
-  background-color: #eee8d5
+  background-color: #F9FAFA
   code
     padding: 0
     display: inline
+.title
+  font-weight: 600
+  &.is-6
+    font-weight: 400
+
+a:hover
+  text-decoration: underline
 
 </style>

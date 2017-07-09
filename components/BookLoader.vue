@@ -4,7 +4,6 @@
       <div v-for="chapter in chapters">
         <h1 class="title is-5">
           <a
-            :href="chapter.id"
             @click="goToChapter(chapter.id)"
           >{{ chapter.name }}</a>
         </h1>
@@ -122,15 +121,17 @@ export default {
     width: 300px
     min-width: 300px
     padding: 20px
+    background-color: #F9FAFA
+    border-right: 1px solid #F4F5F5
 
     div:not(:first-child)
       margin-top: 1.5rem
 
     h1
-      margin-bottom: .5rem
+      margin-bottom: .7rem
 
     li
       list-style: none
-      margin-bottom: .5rem
+      margin-bottom: .7rem
 
 </style>
