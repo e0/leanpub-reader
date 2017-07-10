@@ -27,7 +27,7 @@
       >
         <i class="fa fa-angle-left"></i>
       </div>
-      <div v-html="currentSectionContent" class="content">
+      <div v-html="formattedCurrentSectionContent" class="content">
       </div>
       <div
         :disabled="isLastSection"
@@ -78,6 +78,11 @@ export default {
     })
   },
   computed: {
+    formattedCurrentSectionContent () {
+      const re = /(src=")(\/site_images)/g
+      const subst = '$1https://leanpub.com$2'
+      return this.currentSectionContent.replace(re, subst)
+    },
     isFirstSection () {
       return this.currentSectionId === this.chapters[0].id
     },
@@ -222,11 +227,11 @@ export default {
     overflow-y: scroll
     width: 350px
     padding: 0 25px 70px
-    background-color: #FFF
+    background: rgba(214, 212, 200, 0.15)
     border-right: 1px solid #F4F5F5
 
     .toc
-      padding-top: 25px
+      padding-top: 20px
 
       div
         margin-top: 1.8rem
@@ -295,5 +300,11 @@ export default {
           display: inline
           font-family: 'Courier New'
           font-size: 16px
+
+      figure
+        margin-bottom: 18px
+        img
+          width: auto
+          max-width: 100%
 
 </style>
