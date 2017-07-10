@@ -1,13 +1,53 @@
 <template>
   <div class="wrapper">
-    <div class="toc-wrapper">
+    <div :class="{ 'is-active': showBookSwitcher || rawBook === '' }" class="modal">
+      <div @click="showBookSwitcher = false" class="modal-background"></div>
+      <div class="modal-content">
+        <section class="section">
+            <form v-on:submit.prevent="loadBook">
+          <div class="field has-addons has-addons">
+            <p class="control has-icons-left is-expanded">
+              <input v-model="book.url" class="input is-large" type="text" placeholder="Book URL">
+              <span class="icon is-left">
+                <i class="fa fa-book"></i>
+              </span>
+            </p>
+            <p class="control">
+              <a
+                @click="loadBook"
+                class="button is-info is-large">
+                <span v-show="loading" class="icon">
+                  <i class="fa fa-circle-o-notch fa-spin"></i>
+                </span>
+                <span>Load</span>
+              </a>
+            </p>
+          </div>
+            </form>
+        </section>
+      </div>
+      <button @click="showBookSwitcher = false" class="modal-close is-large"></button>
+    </div>
+    <div v-if="rawBook !== ''" class="toc-wrapper">
+      <header>
+        <h1 class="title is-3">{{ book.title }}</h1>
+        <div
+          @click="showBookSwitcher = true"
+          class="button is-info is-outlined"
+        >
+          <span class="icon is-small">
+            <i class="fa fa-exchange"></i>
+          </span>
+          <span>switch book</span>
+        </div>
+      </header>
       <div class="toc">
         <div v-for="chapter in chapters">
-          <h1
+          <h2
             :class="{ current: chapter.id === currentSectionId }"
             class="title is-5"
             @click="goToSection(chapter.id)"
-          >{{ chapter.name }}</h1>
+          >{{ chapter.name }}</h2>
           <ul
             <li
               v-for="section in chapter.sections"
@@ -19,7 +59,7 @@
         </div>
       </div>
     </div>
-    <div class="content-wrapper">
+    <div v-if="rawBook !== ''"  class="content-wrapper">
       <div
         :disabled="isFirstSection"
         @click="goToPrevSection"
@@ -42,28 +82,20 @@
 
 <script>
 
-// import axios from 'axios'
+import axios from 'axios'
 import cheerio from 'cheerio'
-import sampleBook from '~static/sample-book.txt'
 
 export default {
   data () {
     return {
+      book: {},
       chapters: [],
       currentSectionId: '',
-      currentSectionContent: ''
+      currentSectionContent: '',
+      loading: false,
+      rawBook: '',
+      showBookSwitcher: false
     }
-  },
-  created () {
-    this.findBookNode()
-    // const bookUrl = 'https://leanpub.com/haskell-cookbook/read'
-    // axios.get(bookUrl)
-    //   .then((response) => {
-    //     console.log(response)
-    //   })
-    //   .catch((error) => {
-    //     console.log(error)
-    //   })
   },
   mounted () {
     window.addEventListener('keyup', (e) => {
@@ -96,10 +128,30 @@ export default {
     }
   },
   methods: {
-    findBookNode: function () {
-      const $ = cheerio.load(sampleBook)
-      const toc = $('.toc.no-parts > li')
+    loadBook: function () {
+      this.loading = true
+      axios.get(this.book.url)
+        .then((response) => {
+          this.rawBook = response.data
+          this.parseBook()
+        })
+        .catch((error) => {
+          this.loading = false
+          console.log(error)
+        })
+    },
+    parseBook: function () {
+      const $ = cheerio.load(this.rawBook)
 
+      const title = $('#read-online header h1')
+      if (title.length > 0) {
+        this.book = {
+          title: title.text(),
+          url: ''
+        }
+      }
+
+      const toc = $('.toc.no-parts > li')
       if (toc.length > 0) {
         this.chapters = []
 
@@ -125,13 +177,15 @@ export default {
         })
 
         this.goToSection(this.chapters[0].id)
+        this.loading = false
+        this.showBookSwitcher = false
       }
     },
     goToSection: function (sectionId) {
       this.currentSectionContent = ''
       this.currentSectionId = sectionId
 
-      const $ = cheerio.load(sampleBook)
+      const $ = cheerio.load(this.rawBook)
       this.currentSectionContent += $(sectionId)
 
       let section = $(sectionId).nextUntil('h2')
@@ -218,6 +272,13 @@ export default {
 
 <style lang='sass'>
 
+.modal
+  .modal-content
+    width: 900px
+    section
+      border-radius: 3px
+
+
 .wrapper
   background-color: #FFFEF9
 
@@ -230,16 +291,26 @@ export default {
     background: rgba(214, 212, 200, 0.15)
     border-right: 1px solid #F4F5F5
 
-    .toc
+    header
       padding-top: 20px
 
-      div
-        margin-top: 1.8rem
+      h1
+        margin-bottom: 20px
+
+      .button
+        display: block
+        padding: 5px 10px
+        margin: -5px -10px 5px
+
+    .toc
+      padding-top: 42px
+      div:not(:first-child)
+        margin-top: 28px
 
       li
         list-style: none
 
-      h1, li
+      h2, li
         padding: 5px 10px
         margin: -5px -10px
         cursor: pointer
@@ -271,7 +342,7 @@ export default {
 
     .content
       margin-left: 100px
-      padding: 42px 10px 65px 10px
+      padding: 100px 10px 65px 10px
       height: 100%
       width: calc(100% - 200px)
       overflow-y: auto

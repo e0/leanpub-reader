@@ -1,16 +1,16 @@
 <template>
   <section>
-    <book-loader />
+    <reader />
   </section>
 </template>
 
 <script>
 
-import BookLoader from '~components/BookLoader.vue'
+import Reader from '~components/Reader.vue'
 
 export default {
   components: {
-    BookLoader
+    Reader
   }
 }
 </script>

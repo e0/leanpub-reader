@@ -7,6 +7,7 @@
 <style lang='sass'>
 
 $primary: #141517
+$info: #A39E86
 
 @import '~bulma'
 
