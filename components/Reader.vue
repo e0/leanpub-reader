@@ -288,9 +288,15 @@ export default {
     height: 100vh
     overflow-y: scroll
     width: 350px
-    padding: 0 25px 70px
+    padding: 0 25px
     background: rgba(214, 212, 200, 0.15)
     border-right: 1px solid #F4F5F5
+
+    // using this because padding-bottom doesn't work on Firefox with overflow: scroll
+    &:after
+      content: ""
+      height: 70px
+      display: block
 
     header
       padding-top: 20px
@@ -343,10 +349,16 @@ export default {
 
     .content
       margin-left: 100px
-      padding: 100px 10px 65px 10px
+      padding: 100px 10px 0 10px
       height: 100%
       width: calc(100% - 200px)
       overflow-y: auto
+
+      // using this because padding-bottom doesn't work on Firefox with overflow: scroll
+      &:after
+        content: ""
+        height: 100px
+        display: block
 
       h2, h3
         font-size: 35px
