@@ -130,7 +130,8 @@ export default {
   methods: {
     loadBook: function () {
       this.loading = true
-      axios.get(this.book.url)
+      const url = `/api/load-book?url=${encodeURIComponent(this.book.url)}`
+      axios.get(url)
         .then((response) => {
           this.rawBook = response.data
           this.parseBook()

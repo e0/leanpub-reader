@@ -16,6 +16,9 @@ yarn-error.log*
 # Nuxt generate
 dist
 
+# Backpack build
+build
+
 
 # Created by https://www.gitignore.io/api/macos
 
