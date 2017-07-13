@@ -10,7 +10,8 @@
     "cheerio": "1.0.0-rc.2",
     "cross-env": "^5.0.0",
     "nuxt": "latest",
-    "source-map-support": "^0.4.15"
+    "source-map-support": "^0.4.15",
+    "vuex-persistedstate": "^2.0.0"
   },
   "scripts": {
     "dev": "backpack dev",

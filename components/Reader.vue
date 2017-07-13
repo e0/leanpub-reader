@@ -7,7 +7,13 @@
             <form v-on:submit.prevent="loadBook">
           <div class="field has-addons has-addons">
             <p class="control has-icons-left is-expanded">
-              <input v-model="book.url" class="input is-large" type="text" placeholder="Book URL">
+              <input
+                :value="book.url"
+                @input="setBookUrl"
+                class="input is-large"
+                type="text"
+                placeholder="Book URL"
+              >
               <span class="icon is-left">
                 <i class="fa fa-book"></i>
               </span>
@@ -46,15 +52,35 @@
           <h2
             :class="{ current: chapter.id === currentSectionId }"
             class="title is-5"
-            @click="goToSection(chapter.id)"
-          >{{ chapter.name }}</h2>
+          >
+            <label class="checkbox">
+              <input
+                :checked="chapter.done"
+                @change="toggleChapter(chapter)"
+                type="checkbox"
+              >
+            </label>
+            <span @click="goToSection(chapter.id)">
+              {{ chapter.name }}
+            </span>
+          </h2>
           <ul
             <li
               v-for="section in chapter.sections"
-              @click="goToSection(section.id)"
               :class="{ current: section.id === currentSectionId }"
               class="title is-6"
-            >{{ section.name }}</li>
+            >
+              <label class="checkbox">
+                <input
+                  :checked="section.done"
+                  @change="toggleSection(section)"
+                  type="checkbox"
+                >
+              </label>
+              <span @click="goToSection(section.id)">
+                {{ section.name }}
+              </span>
+            </li>
           </ul>
         </div>
       </div>
@@ -84,12 +110,12 @@
 
 import axios from 'axios'
 import cheerio from 'cheerio'
+import { mapMutations } from 'vuex'
+import createPersistedState from 'vuex-persistedstate'
 
 export default {
   data () {
     return {
-      book: {},
-      chapters: [],
       currentSectionId: '',
       currentSectionContent: '',
       loading: false,
@@ -98,6 +124,10 @@ export default {
     }
   },
   mounted () {
+    // Set up localStorage
+    const plugin = createPersistedState()
+    plugin(this.$store)
+
     window.addEventListener('keyup', (e) => {
       switch (e.keyCode) {
         case 37:
@@ -110,6 +140,15 @@ export default {
     })
   },
   computed: {
+    book () {
+      return this.$store.state.book
+    },
+    chapters () {
+      return this.$store.state.chapters.list
+    },
+    storedBookUrl () {
+      return this.$store.state.chapters.bookUrl
+    },
     formattedCurrentSectionContent () {
       const re = /(src=")(\/site_images)/g
       const subst = '$1https://leanpub.com$2'
@@ -128,13 +167,30 @@ export default {
     }
   },
   methods: {
+    setBookTitle (title) {
+      this.$store.commit('setTitle', title)
+    },
+    setBookUrl (e) {
+      this.$store.commit('setUrl', e.target.value)
+    },
+    setBookUrlForChapters (url) { // For comparing with main store
+      this.$store.commit('chapters/setBookUrl', url)
+    },
+    ...mapMutations({
+      setChapters: 'chapters/setChapters',
+      toggleChapter: 'chapters/toggleChapter',
+      toggleSection: 'chapters/toggleSection'
+    }),
     loadBook: function () {
       this.loading = true
       const url = `/api/load-book?url=${encodeURIComponent(this.book.url)}`
       axios.get(url)
         .then((response) => {
           this.rawBook = response.data
-          this.parseBook()
+          if (this.book.url !== this.storedBookUrl) {
+            this.setBookUrlForChapters(this.book.url)
+            this.parseBook()
+          }
         })
         .catch((error) => {
           this.loading = false
@@ -146,21 +202,19 @@ export default {
 
       const title = $('#read-online header h1')
       if (title.length > 0) {
-        this.book = {
-          title: title.text(),
-          url: ''
-        }
+        this.setBookTitle(title.text())
       }
 
       const toc = $('.toc.no-parts > li')
       if (toc.length > 0) {
-        this.chapters = []
+        const chapters = []
 
         toc.each((i, chapterNode) => {
           let chapterNodeLink = $(chapterNode).find('a')[0]
           let chapter = {
             id: $(chapterNodeLink).attr('href'),
             name: $(chapterNodeLink).text(),
+            done: false,
             sections: []
           }
           let sectionNodes = $(chapterNode).find('ul > li')
@@ -168,15 +222,17 @@ export default {
             let sectionNodeLink = $(sectionNode).find('a')[0]
             let section = {
               id: $(sectionNodeLink).attr('href'),
-              name: $(sectionNodeLink).text()
+              name: $(sectionNodeLink).text(),
+              done: false
             }
 
             chapter.sections.push(section)
           })
 
-          this.chapters.push(chapter)
+          chapters.push(chapter)
         })
 
+        this.setChapters(chapters)
         this.goToSection(this.chapters[0].id)
         this.loading = false
         this.showBookSwitcher = false
@@ -282,6 +338,13 @@ export default {
 
 .wrapper
   background-color: #FFFEF9
+
+  .title
+    font-weight: 600
+    span
+      font-weight: 600
+    &.is-6 > span
+      font-weight: 400
 
   .toc-wrapper
     position: fixed
