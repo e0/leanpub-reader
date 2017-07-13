@@ -190,6 +190,10 @@ export default {
           if (this.book.url !== this.storedBookUrl) {
             this.setBookUrlForChapters(this.book.url)
             this.parseBook()
+          } else {
+            this.goToSection(this.chapters[0].id)
+            this.loading = false
+            this.showBookSwitcher = false
           }
         })
         .catch((error) => {
