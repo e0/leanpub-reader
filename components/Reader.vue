@@ -50,34 +50,36 @@
       <div class="toc">
         <div v-for="chapter in chapters">
           <h2
+            @click="goToSection(chapter.id)"
             :class="{ current: chapter.id === currentSectionId }"
             class="title is-5"
           >
             <label class="checkbox">
               <input
                 :checked="chapter.done"
-                @change="toggleChapter(chapter)"
+                @click.stop="toggleChapter(chapter)"
                 type="checkbox"
               >
             </label>
-            <span @click="goToSection(chapter.id)">
+            <span>
               {{ chapter.name }}
             </span>
           </h2>
           <ul
             <li
               v-for="section in chapter.sections"
+              @click="goToSection(section.id)"
               :class="{ current: section.id === currentSectionId }"
               class="title is-6"
             >
               <label class="checkbox">
                 <input
                   :checked="section.done"
-                  @change="toggleSection(section)"
+                  @click.stop="toggleSection(section)"
                   type="checkbox"
                 >
               </label>
-              <span @click="goToSection(section.id)">
+              <span>
                 {{ section.name }}
               </span>
             </li>
