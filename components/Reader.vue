@@ -95,7 +95,7 @@
       >
         <i class="fa fa-angle-left"></i>
       </div>
-      <div v-html="formattedCurrentSectionContent" class="content">
+      <div v-html="formattedCurrentSectionContent" ref="content" class="content">
       </div>
       <div
         :disabled="isLastSection"
@@ -259,6 +259,8 @@ export default {
         const outerHtml = this.outerEl($(nextPart)).html()
         this.currentSectionContent += outerHtml
       })
+
+      this.$refs.content.scrollTo(0, 0)
     },
     goToNextSection: function () {
       for (let i = 0; i < this.chapters.length; i += 1) {
